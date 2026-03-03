@@ -6,85 +6,114 @@
     <title>Debate Typing Challenge</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .char-next { text-decoration: underline; background-color: rgba(59, 130, 246, 0.2); }
-        .char-correct { color: #10b981; }
-        .char-incorrect { color: #ef4444; border-bottom: 2px solid #ef4444; }
-        .cursor-blink { border-right: 2px solid #3b82f6; animation: blink 1s infinite; }
+        /* Texto base: muy claro para que no estorbe */
+        .char-base { color: #e2e8f0; transition: all 0.05s; font-weight: 400; } 
+        
+        /* Texto al escribir: Negro sólido y fuerte */
+        .char-correct { color: #000000; font-weight: 800; } 
+        
+        /* Error: Rojo pero mantiene la estructura */
+        .char-incorrect { color: #ef4444; background-color: rgba(239, 68, 68, 0.1); font-weight: 800; border-bottom: 2px solid #ef4444; }
+        
+        .cursor-active {
+            position: relative;
+            background-color: rgba(59, 130, 246, 0.15);
+        }
+        .cursor-active::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -2px;
+            width: 100%;
+            height: 3px;
+            background-color: #000000;
+            animation: blink 1s infinite;
+        }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        #text-display {
+            font-variant-ligatures: none;
+            word-break: break-word;
+            text-rendering: optimizeLegibility;
+        }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen font-sans text-slate-900">
+<body class="bg-slate-100 min-h-screen font-sans text-slate-900">
 
     <div class="max-w-4xl mx-auto px-4 py-12">
         <!-- Header -->
-        <header class="text-center mb-12">
-            <h1 class="text-4xl font-bold text-slate-800 mb-2">Debate Typing Challenge</h1>
-            <p class="text-slate-600 italic">"La velocidad de tu mente debe coincidir con la de tus dedos."</p>
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-black text-slate-800 mb-2 uppercase tracking-tighter">Debate Mode</h1>
+            <p class="text-slate-500 font-medium">Escribe sobre las letras grises. Los acentos son opcionales.</p>
         </header>
 
         <!-- Stats Bar -->
-        <div class="grid grid-cols-3 gap-4 mb-8">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
-                <span class="block text-sm text-slate-500 uppercase tracking-wider font-semibold">Tiempo</span>
-                <span id="timer" class="text-3xl font-mono font-bold text-blue-600">0.00s</span>
+        <div class="grid grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 text-center">
+                <span class="block text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Cronómetro</span>
+                <span id="timer" class="text-3xl font-mono font-black text-black">0.00s</span>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
-                <span class="block text-sm text-slate-500 uppercase tracking-wider font-semibold">WPM</span>
-                <span id="wpm" class="text-3xl font-mono font-bold text-emerald-600">0</span>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 text-center">
+                <span class="block text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Palabras/Min</span>
+                <span id="wpm" class="text-3xl font-mono font-black text-black">0</span>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
-                <span class="block text-sm text-slate-500 uppercase tracking-wider font-semibold">Precisión</span>
-                <span id="accuracy" class="text-3xl font-mono font-bold text-orange-600">100%</span>
-            </div>
-        </div>
-
-        <!-- Topic Card -->
-        <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 mb-8 relative overflow-hidden">
-            <div id="topic-tag" class="absolute top-0 right-0 bg-blue-100 text-blue-700 px-4 py-1 rounded-bl-xl text-xs font-bold uppercase">
-                TEMA DE DEBATE
-            </div>
-            
-            <h2 id="current-topic" class="text-xl font-bold text-slate-700 mb-4">Cargando tema...</h2>
-            
-            <!-- Text Display Area -->
-            <div id="text-display" class="text-2xl leading-relaxed text-slate-400 font-medium select-none mb-6 min-h-[120px]">
-                <!-- Characters will be injected here -->
-            </div>
-
-            <!-- Hidden Input for Focus -->
-            <input type="text" id="hidden-input" class="opacity-0 absolute -z-10" autocomplete="off">
-            
-            <div class="flex justify-between items-center mt-6 pt-6 border-t border-slate-100">
-                <p class="text-sm text-slate-400">Presiona cualquier tecla para empezar a escribir.</p>
-                <button id="reset-btn" class="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded-xl transition-all font-semibold flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
-                    Nuevo Tema
-                </button>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 text-center">
+                <span class="block text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Precisión</span>
+                <span id="accuracy" class="text-3xl font-mono font-black text-black">100%</span>
             </div>
         </div>
 
-        <!-- Results Modal (Hidden by default) -->
-        <div id="results-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center">
-                <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <!-- Typing Area Card -->
+        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-200 relative overflow-hidden group cursor-text" id="main-card">
+            <div class="absolute top-0 left-0 w-full h-1 bg-slate-100">
+                <div id="progress-bar" class="h-full bg-black transition-all duration-200" style="width: 0%"></div>
+            </div>
+            
+            <div class="flex justify-between items-start mb-6">
+                <h2 id="current-topic" class="text-lg font-bold text-slate-400 italic max-w-[80%]">Cargando argumento...</h2>
+                <div class="bg-black text-white text-[10px] px-3 py-1 rounded-full font-black uppercase">En vivo</div>
+            </div>
+            
+            <!-- Direct Typing Area -->
+            <div id="text-display" class="text-3xl leading-relaxed font-medium select-none mb-8 min-h-[160px] p-2">
+                <!-- Las letras se inyectan aquí -->
+            </div>
+
+            <div class="flex justify-between items-center pt-8 border-t border-slate-100">
+                <div class="flex items-center gap-3">
+                    <kbd class="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-bold text-slate-500 shadow-sm">TAB</kbd>
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-tight">para reiniciar</span>
                 </div>
-                <h3 class="text-2xl font-bold mb-2">¡Argumento Completado!</h3>
-                <p class="text-slate-500 mb-8">Has terminado tu defensa en un tiempo récord.</p>
+
+                <div class="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-200">
+                    <span class="text-[10px] font-black text-slate-400 uppercase">Input:</span>
+                    <span id="last-key-display" class="text-xl font-black text-black min-w-[20px] text-center">-</span>
+                </div>
+            </div>
+
+            <!-- Hidden Input -->
+            <input type="text" id="hidden-input" class="opacity-0 absolute inset-0 w-full h-full cursor-text" autocomplete="off" autofocus>
+        </div>
+
+        <!-- Results Modal -->
+        <div id="results-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-[3rem] p-10 max-w-md w-full text-center shadow-2xl">
+                <h3 class="text-4xl font-black mb-2 tracking-tighter italic">¡TIEMPO FINAL!</h3>
+                <p class="text-slate-500 font-medium mb-8">Has digitalizado el debate con éxito.</p>
                 
-                <div class="bg-slate-50 rounded-2xl p-6 mb-8 grid grid-cols-2 gap-4">
-                    <div>
-                        <p class="text-xs text-slate-400 uppercase font-bold mb-1">Tiempo Final</p>
-                        <p id="final-time" class="text-2xl font-bold text-blue-600">0.00s</p>
+                <div class="grid grid-cols-2 gap-4 mb-10">
+                    <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                        <p class="text-[10px] text-slate-400 uppercase font-black mb-1">Segundos</p>
+                        <p id="final-time" class="text-3xl font-black text-black">0.00</p>
                     </div>
-                    <div>
-                        <p class="text-xs text-slate-400 uppercase font-bold mb-1">WPM</p>
-                        <p id="final-wpm" class="text-2xl font-bold text-emerald-600">0</p>
+                    <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                        <p class="text-[10px] text-slate-400 uppercase font-black mb-1">Velocidad</p>
+                        <p id="final-wpm" class="text-3xl font-black text-black">0</p>
                     </div>
                 </div>
 
-                <button id="close-modal" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-blue-200">
-                    Siguiente Desafío
+                <button id="close-modal" class="w-full bg-black text-white font-black py-5 rounded-2xl hover:scale-[1.02] transition-transform text-xl uppercase tracking-widest shadow-xl">
+                    Siguiente Reto
                 </button>
             </div>
         </div>
@@ -93,24 +122,16 @@
     <script>
         const debateTopics = [
             {
-                topic: "¿Debería la inteligencia artificial tener derechos?",
-                text: "La conciencia es un concepto biológico subjetivo; si una máquina puede sentir dolor o autoconciencia, ignorar su sufrimiento sería una falla moral para nuestra especie."
+                topic: "¿Es la privacidad un derecho absoluto?",
+                text: "La libertad individual termina donde comienza la seguridad del prójimo, pero vigilar sin descanso erosiona la confianza necesaria para una democracia sana."
             },
             {
-                topic: "Exploración Espacial vs. Pobreza Terrestre",
-                text: "Invertir en las estrellas no es ignorar la Tierra, sino buscar soluciones tecnológicas avanzadas que permitan la supervivencia a largo plazo de toda la humanidad."
+                topic: "Sobre la Inteligencia Artificial",
+                text: "Las máquinas no piensan, solo procesan patrones a una velocidad que supera nuestra intuición biológica, creando una ilusión de sabiduría digital."
             },
             {
-                topic: "Privacidad en la Era Digital",
-                text: "Sacrificar nuestra privacidad personal en nombre de una seguridad colectiva abstracta crea un precedente peligroso que históricamente ha conducido al autoritarismo."
-            },
-            {
-                topic: "Educación Tradicional vs. Autodidacta",
-                text: "El sistema educativo actual premia la memorización mecánica en lugar de fomentar el pensamiento crítico necesario para resolver los problemas complejos del siglo veintiuno."
-            },
-            {
-                topic: "Impacto de las Redes Sociales",
-                text: "Las plataformas digitales han democratizado la información, pero simultáneamente han fracturado nuestra atención y polarizado el discurso político global."
+                topic: "El futuro de la economía",
+                text: "El valor del dinero ya no reside en el oro sino en la fe colectiva que depositamos en algoritmos y sistemas bancarios invisibles que controlan nuestra vida."
             }
         ];
 
@@ -118,8 +139,8 @@
         let timerInterval = null;
         let startTime = null;
         let isStarted = false;
-        let errors = 0;
         let targetText = "";
+        let mistakes = 0;
 
         const textDisplay = document.getElementById('text-display');
         const hiddenInput = document.getElementById('hidden-input');
@@ -127,41 +148,90 @@
         const timerEl = document.getElementById('timer');
         const wpmEl = document.getElementById('wpm');
         const accuracyEl = document.getElementById('accuracy');
-        const resetBtn = document.getElementById('reset-btn');
+        const lastKeyDisplay = document.getElementById('last-key-display');
         const resultsModal = document.getElementById('results-modal');
         const finalTimeEl = document.getElementById('final-time');
         const finalWpmEl = document.getElementById('final-wpm');
         const closeModalBtn = document.getElementById('close-modal');
+        const progressBar = document.getElementById('progress-bar');
+
+        // Mapeo para normalizar acentos
+        const accentMap = {
+            'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
+            'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
+            'ü': 'u', 'Ü': 'U'
+        };
+
+        function normalizeChar(char) {
+            return accentMap[char] || char;
+        }
 
         function initChallenge() {
             const randomPick = debateTopics[Math.floor(Math.random() * debateTopics.length)];
             targetText = randomPick.text;
             currentTopicEl.innerText = randomPick.topic;
+            
             currentIndex = 0;
-            errors = 0;
+            mistakes = 0;
             isStarted = false;
             clearInterval(timerInterval);
+            
             timerEl.innerText = "0.00s";
             wpmEl.innerText = "0";
             accuracyEl.innerText = "100%";
+            lastKeyDisplay.innerText = "-";
+            progressBar.style.width = "0%";
             
-            renderText();
+            renderInitialText();
             hiddenInput.value = "";
             hiddenInput.focus();
         }
 
-        function renderText() {
+        function renderInitialText() {
             textDisplay.innerHTML = '';
             targetText.split('').forEach((char, index) => {
                 const span = document.createElement('span');
                 span.innerText = char;
-                if (index < currentIndex) {
-                    span.classList.add('char-correct');
-                } else if (index === currentIndex) {
-                    span.classList.add('char-next', 'cursor-blink');
-                }
+                span.className = 'char-base';
+                if (index === 0) span.classList.add('cursor-active');
                 textDisplay.appendChild(span);
             });
+        }
+
+        function handleInput(charTyped) {
+            const spans = textDisplay.querySelectorAll('span');
+            const expectedChar = targetText[currentIndex];
+
+            // Comparamos el caracter normalizado para ignorar acentos
+            if (normalizeChar(charTyped) === normalizeChar(expectedChar)) {
+                // Correcto: se pone NEGRO (mantenemos el original del texto con su acento)
+                spans[currentIndex].className = 'char-correct';
+                currentIndex++;
+                
+                // Mover cursor
+                if (currentIndex < targetText.length) {
+                    spans[currentIndex].classList.add('cursor-active');
+                }
+                
+                // Actualizar progreso
+                const progress = (currentIndex / targetText.length) * 100;
+                progressBar.style.width = progress + "%";
+            } else {
+                // Error: se pone rojo momentáneamente
+                mistakes++;
+                spans[currentIndex].classList.add('char-incorrect');
+                setTimeout(() => {
+                    spans[currentIndex].classList.remove('char-incorrect');
+                }, 200);
+            }
+            
+            updateStats();
+        }
+
+        function updateStats() {
+            const total = currentIndex + mistakes;
+            const acc = total === 0 ? 100 : Math.round((currentIndex / total) * 100);
+            accuracyEl.innerText = acc + "%";
         }
 
         function startTimer() {
@@ -169,89 +239,54 @@
             timerInterval = setInterval(() => {
                 const elapsed = (Date.now() - startTime) / 1000;
                 timerEl.innerText = elapsed.toFixed(2) + "s";
-                calculateWPM(elapsed);
-            }, 10);
-        }
-
-        function calculateWPM(seconds) {
-            if (seconds === 0) return;
-            const words = currentIndex / 5; // Standard WPM calculation
-            const wpm = Math.round(words / (seconds / 60));
-            wpmEl.innerText = wpm > 0 ? wpm : 0;
-        }
-
-        function calculateAccuracy() {
-            const acc = Math.max(0, Math.round(((currentIndex - errors) / currentIndex) * 100));
-            accuracyEl.innerText = (isNaN(acc) ? 100 : acc) + "%";
+                
+                const wpm = Math.round((currentIndex / 5) / (elapsed / 60));
+                wpmEl.innerText = wpm > 0 ? wpm : 0;
+            }, 50);
         }
 
         function finishChallenge() {
             clearInterval(timerInterval);
-            const totalTime = timerEl.innerText;
-            const finalWpm = wpmEl.innerText;
-            
-            finalTimeEl.innerText = totalTime;
-            finalWpmEl.innerText = finalWpm;
+            finalTimeEl.innerText = timerEl.innerText.replace('s', '');
+            finalWpmEl.innerText = wpmEl.innerText;
             resultsModal.classList.remove('hidden');
             resultsModal.classList.add('flex');
         }
 
-        // Handle Input
-        window.addEventListener('keydown', (e) => {
-            // Prevent scrolling with space
-            if (e.key === " " && e.target === document.body) {
-                e.preventDefault();
-            }
-            
-            if (resultsModal.classList.contains('flex')) return;
-
-            // Focus hidden input on any key press
-            hiddenInput.focus();
-        });
-
         hiddenInput.addEventListener('input', (e) => {
-            if (!isStarted && e.data) {
+            const char = e.data;
+            if (!char) return;
+
+            if (!isStarted) {
                 isStarted = true;
                 startTimer();
             }
 
-            const val = e.target.value;
-            const lastChar = val[val.length - 1];
-            
-            // Basic logic: we only care about the correct next character
-            if (lastChar === targetText[currentIndex]) {
-                currentIndex++;
-                renderText();
-                calculateAccuracy();
-                
-                if (currentIndex === targetText.length) {
-                    finishChallenge();
-                }
-            } else {
-                // Flash error on the current character
-                errors++;
-                const spans = textDisplay.querySelectorAll('span');
-                if (spans[currentIndex]) {
-                    spans[currentIndex].classList.add('char-incorrect');
-                    setTimeout(() => {
-                        spans[currentIndex].classList.remove('char-incorrect');
-                    }, 200);
-                }
-                calculateAccuracy();
+            lastKeyDisplay.innerText = char === " " ? "␣" : char;
+            handleInput(char);
+
+            if (currentIndex === targetText.length) {
+                finishChallenge();
             }
-            
-            // Keep input clear to only catch new keystrokes
-            e.target.value = "";
+
+            hiddenInput.value = ""; 
         });
 
-        resetBtn.addEventListener('click', initChallenge);
+        // Tecla TAB para reiniciar rápido
+        window.addEventListener('keydown', (e) => {
+            if (e.key === "Tab") {
+                e.preventDefault();
+                initChallenge();
+            }
+        });
+
+        document.getElementById('main-card').addEventListener('click', () => hiddenInput.focus());
         closeModalBtn.addEventListener('click', () => {
             resultsModal.classList.add('hidden');
             resultsModal.classList.remove('flex');
             initChallenge();
         });
 
-        // Initialize on load
         window.onload = initChallenge;
     </script>
 </body>
