@@ -3,291 +3,423 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Debate Typing Challenge</title>
+    <title>R7 AROMA | Esencias de Autor</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        /* Texto base: muy claro para que no estorbe */
-        .char-base { color: #e2e8f0; transition: all 0.05s; font-weight: 400; } 
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a;
+            color: #ffffff;
+            scroll-behavior: smooth;
+        }
+        h1, h2, h3, .brand-font {
+            font-family: 'Playfair Display', serif;
+        }
+        .gold-text {
+            color: #c5a059;
+        }
+        .gold-bg {
+            background-color: #c5a059;
+        }
         
-        /* Texto al escribir: Negro sólido y fuerte */
-        .char-correct { color: #000000; font-weight: 800; } 
+        /* Contenedor de producto optimizado para botellas altas */
+        .product-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s ease;
+            display: flex;
+            flex-direction: column;
+        }
         
-        /* Error: Rojo pero mantiene la estructura */
-        .char-incorrect { color: #ef4444; background-color: rgba(239, 68, 68, 0.1); font-weight: 800; border-bottom: 2px solid #ef4444; }
+        .product-card:hover {
+            transform: translateY(-8px);
+            border-color: #c5a059;
+            background: rgba(255, 255, 255, 0.04);
+        }
         
-        .cursor-active {
+        /* Contenedor de imagen: Asegura que el perfume se vea COMPLETO */
+        .image-viewport {
             position: relative;
-            background-color: rgba(59, 130, 246, 0.15);
-        }
-        .cursor-active::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: -2px;
             width: 100%;
-            height: 3px;
-            background-color: #000000;
-            animation: blink 1s infinite;
+            height: 450px; /* Altura generosa para perfumes verticales */
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Fondo sutil para integrar imágenes con fondo blanco */
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0) 70%);
         }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        
+        .product-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* ESTO asegura que el perfume NO se corte */
+            transition: transform 0.6s ease;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+        }
+        
+        .product-card:hover .product-image {
+            transform: scale(1.05);
+        }
 
-        #text-display {
-            font-variant-ligatures: none;
-            word-break: break-word;
-            text-rendering: optimizeLegibility;
+        .cart-dot {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            height: 18px;
+            width: 18px;
+            background-color: #c5a059;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: black;
+            font-weight: 800;
         }
+
+        .hero-gradient {
+            background: linear-gradient(to bottom, transparent 0%, rgba(10,10,10,1) 90%);
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #c5a059; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen font-sans text-slate-900">
+<body class="overflow-x-hidden">
 
-    <div class="max-w-4xl mx-auto px-4 py-12">
-        <!-- Header -->
-        <header class="text-center mb-10">
-            <h1 class="text-4xl font-black text-slate-800 mb-2 uppercase tracking-tighter">Debate Mode</h1>
-            <p class="text-slate-500 font-medium">Escribe sobre las letras grises. Los acentos son opcionales.</p>
-        </header>
+    <!-- Navegación -->
+    <nav class="fixed w-full z-50 bg-black/80 backdrop-blur-xl border-b border-white/5 px-6 md:px-12 py-5 flex justify-between items-center">
+        <div class="text-xl md:text-2xl font-bold tracking-[0.3em] brand-font gold-text uppercase">R7 AROMA</div>
+        <div class="hidden md:flex space-x-10 text-[10px] uppercase tracking-[0.2em] font-light">
+            <a href="#inicio" class="hover:text-[#c5a059] transition">Inicio</a>
+            <a href="#coleccion" class="hover:text-[#c5a059] transition">Colección</a>
+            <a href="#historia" class="hover:text-[#c5a059] transition">Nosotros</a>
+        </div>
+        <div class="relative cursor-pointer group" onclick="toggleCart()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 group-hover:text-[#c5a059] transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            <div id="cart-count" class="cart-dot">0</div>
+        </div>
+    </nav>
 
-        <!-- Stats Bar -->
-        <div class="grid grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 text-center">
-                <span class="block text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Cronómetro</span>
-                <span id="timer" class="text-3xl font-mono font-black text-black">0.00s</span>
-            </div>
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 text-center">
-                <span class="block text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Palabras/Min</span>
-                <span id="wpm" class="text-3xl font-mono font-black text-black">0</span>
-            </div>
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 text-center">
-                <span class="block text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Precisión</span>
-                <span id="accuracy" class="text-3xl font-mono font-black text-black">100%</span>
-            </div>
+    <!-- Hero -->
+    <header id="inicio" class="relative h-[80vh] flex items-center justify-center text-center px-4 overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&q=80&w=1920" class="w-full h-full object-cover opacity-40">
+            <div class="absolute inset-0 hero-gradient"></div>
+        </div>
+        <div class="relative z-10 max-w-4xl">
+            <h1 class="text-5xl md:text-7xl mb-6 tracking-tight">Fragancias que definen tu Universo</h1>
+            <p class="text-gray-400 text-lg mb-10 font-light tracking-wide">Exclusividad en cada atomización.</p>
+            <a href="#coleccion" class="gold-bg text-black px-12 py-4 font-bold uppercase tracking-widest hover:bg-white transition duration-500 text-xs">Ver Catálogo</a>
+        </div>
+    </header>
+
+    <!-- Catálogo -->
+    <main class="py-20 px-6 max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl mb-4" id="coleccion">Nuestra Selección</h2>
+            <div class="h-px w-20 gold-bg mx-auto"></div>
         </div>
 
-        <!-- Typing Area Card -->
-        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-200 relative overflow-hidden group cursor-text" id="main-card">
-            <div class="absolute top-0 left-0 w-full h-1 bg-slate-100">
-                <div id="progress-bar" class="h-full bg-black transition-all duration-200" style="width: 0%"></div>
-            </div>
-            
-            <div class="flex justify-between items-start mb-6">
-                <h2 id="current-topic" class="text-lg font-bold text-slate-400 italic max-w-[80%]">Cargando argumento...</h2>
-                <div class="bg-black text-white text-[10px] px-3 py-1 rounded-full font-black uppercase">En vivo</div>
-            </div>
-            
-            <!-- Direct Typing Area -->
-            <div id="text-display" class="text-3xl leading-relaxed font-medium select-none mb-8 min-h-[160px] p-2">
-                <!-- Las letras se inyectan aquí -->
-            </div>
-
-            <div class="flex justify-between items-center pt-8 border-t border-slate-100">
-                <div class="flex items-center gap-3">
-                    <kbd class="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-bold text-slate-500 shadow-sm">TAB</kbd>
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-tight">para reiniciar</span>
-                </div>
-
-                <div class="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-200">
-                    <span class="text-[10px] font-black text-slate-400 uppercase">Input:</span>
-                    <span id="last-key-display" class="text-xl font-black text-black min-w-[20px] text-center">-</span>
-                </div>
-            </div>
-
-            <!-- Hidden Input -->
-            <input type="text" id="hidden-input" class="opacity-0 absolute inset-0 w-full h-full cursor-text" autocomplete="off" autofocus>
+        <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <!-- Inyectado por JS -->
         </div>
+    </main>
 
-        <!-- Results Modal -->
-        <div id="results-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-[3rem] p-10 max-w-md w-full text-center shadow-2xl">
-                <h3 class="text-4xl font-black mb-2 tracking-tighter italic">¡TIEMPO FINAL!</h3>
-                <p class="text-slate-500 font-medium mb-8">Has digitalizado el debate con éxito.</p>
-                
-                <div class="grid grid-cols-2 gap-4 mb-10">
-                    <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                        <p class="text-[10px] text-slate-400 uppercase font-black mb-1">Segundos</p>
-                        <p id="final-time" class="text-3xl font-black text-black">0.00</p>
-                    </div>
-                    <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                        <p class="text-[10px] text-slate-400 uppercase font-black mb-1">Velocidad</p>
-                        <p id="final-wpm" class="text-3xl font-black text-black">0</p>
-                    </div>
-                </div>
-
-                <button id="close-modal" class="w-full bg-black text-white font-black py-5 rounded-2xl hover:scale-[1.02] transition-transform text-xl uppercase tracking-widest shadow-xl">
-                    Siguiente Reto
-                </button>
+    <!-- Carrito -->
+    <div id="cart-modal" class="fixed inset-0 bg-black/95 z-[60] hidden flex flex-col p-8 md:p-20 overflow-y-auto">
+        <div class="flex justify-between items-center mb-12 max-w-2xl mx-auto w-full">
+            <h2 class="text-3xl brand-font tracking-wide">Bolsa de Compra</h2>
+            <button onclick="toggleCart()" class="text-4xl font-light hover:text-[#c5a059] transition">&times;</button>
+        </div>
+        <div id="cart-items" class="flex-1 space-y-6 max-w-2xl mx-auto w-full"></div>
+        <div class="mt-12 border-t border-white/10 pt-10 max-w-2xl mx-auto w-full">
+            <div class="flex justify-between text-xl mb-8">
+                <span class="font-light">Total</span>
+                <span id="cart-total" class="gold-text">$0.00</span>
             </div>
+            <button onclick="checkout()" class="w-full gold-bg text-black py-4 font-bold uppercase tracking-widest hover:bg-white transition duration-500 text-sm">
+                Finalizar pedido por WhatsApp
+            </button>
         </div>
     </div>
 
     <script>
-        const debateTopics = [
-            {
-                topic: "¿Es la privacidad un derecho absoluto?",
-                text: "La libertad individual termina donde comienza la seguridad del prójimo, pero vigilar sin descanso erosiona la confianza necesaria para una democracia sana."
+        const WHATSAPP_NUMBER = "18294379911";
+        
+        // Datos de productos actualizados
+        const products = [
+            { 
+                id: 1, 
+                name: "", 
+                price: 3500, 
+                img: "1 (1).png", // Tu imagen local
+                
             },
-            {
-                topic: "Sobre la Inteligencia Artificial",
-                text: "Las máquinas no piensan, solo procesan patrones a una velocidad que supera nuestra intuición biológica, creando una ilusión de sabiduría digital."
+        { 
+                id: 2, 
+                name: "", 
+                price: 2400, 
+                img: "1 (2).png", // Tu imagen local
+               
+            },{ 
+                id: 3, 
+                name: "", 
+                price: 2550, 
+                img: "1 (3).png", // Tu imagen local
+                
+            },{ 
+                id: 4, 
+                name: "", 
+                price: 2600, 
+                img: "1 (4).png", // Tu imagen local
+                
             },
-            {
-                topic: "El futuro de la economía",
-                text: "El valor del dinero ya no reside en el oro sino en la fe colectiva que depositamos en algoritmos y sistemas bancarios invisibles que controlan nuestra vida."
-            }
+            { 
+                id: 5, 
+                name: "", 
+                price: 3300, 
+                img: "1 (6).png", // Tu imagen local
+                
+            },   
+            { 
+                id: 6, 
+                name: "", 
+                price: 2600, 
+                img: "1 (7).png", // Tu imagen local
+                
+            },   
+            { 
+                id: 7, 
+                name: "", 
+                price: 2100, 
+                img: "1 (8).png", // Tu imagen local
+                
+            },   
+            { 
+                id: 8, 
+                name: "", 
+                price: 2150, 
+                img: "1 (9).png", // Tu imagen local
+                
+            },   
+            
+            { 
+                id: 9, 
+                name: "", 
+                price: 1850, 
+                img: "1 (11).png", // Tu imagen local
+               
+            },   
+            { 
+                id: 10, 
+                name: "", 
+                price: 2650, 
+                img: "1 (12).png", // Tu imagen local
+                
+            },   
+            { 
+                id: 11, 
+                name: "", 
+                price: 2490, 
+                img: "1 (13).png", // Tu imagen local
+                
+            },   
+            { 
+                id: 12, 
+                name: "", 
+                price: 2700, 
+                img: "1 (14).png", // Tu imagen local
+               
+            },   
+            
+            { 
+                id: 13, 
+                name: "", 
+                price: 2150, 
+                img: "1 (16).png", // Tu imagen local
+                
+            },   
+            { 
+                id: 14, 
+                name: "", 
+                price: 3050, 
+                img: "1 (17).png", // Tu imagen local
+                desc: "100ml | Lattafa Parfums"
+            },   
+            { 
+                id: 15, 
+                name: "", 
+                price: 3300, 
+                img: "1 (18).png", // Tu imagen local
+               
+            },   
+            { 
+                id: 16, 
+                name: "", 
+                price:2850 , 
+                img: "1 (19).png", // Tu imagen local
+             
+            },   
+             
+             
+             { 
+                id: 17, 
+                name: "", 
+                price: 2400, 
+                img: "1 (21).png", // Tu imagen local
+                
+            },   
+             { 
+                id: 18, 
+                name: "", 
+                price: 2200, 
+                img: "1 (22).png", // Tu imagen local
+                
+            },   
+             { 
+                id: 19, 
+                name: "", 
+                price: 3550, 
+                img: "1 (23).png", // Tu imagen local
+                
+            },   
+             { 
+                id: 20, 
+                name: "", 
+                price: 2300, 
+                img: "1 (24).png", // Tu imagen local
+               
+            },   
+             
+             { 
+                id:21, 
+                name: "", 
+                price: 2200, 
+                img: "1 (26).png", // Tu imagen local
+                
+            },   
+            { 
+                id: 22, 
+                name: "", 
+                price: 2650, 
+                img: "1 (27).png", // Tu imagen local
+               
+            },   
+            { 
+                id: 23, 
+                name: "", 
+                price:2450 , 
+                img: "1 (28).png", // Tu imagen local
+                
+            },   
+            { 
+                id: 24, 
+                name: "", 
+                price: 3100, 
+                img: "1 (29).png", // Tu imagen local
+                
+            },   
+            
         ];
 
-        let currentIndex = 0;
-        let timerInterval = null;
-        let startTime = null;
-        let isStarted = false;
-        let targetText = "";
-        let mistakes = 0;
+        let cart = [];
 
-        const textDisplay = document.getElementById('text-display');
-        const hiddenInput = document.getElementById('hidden-input');
-        const currentTopicEl = document.getElementById('current-topic');
-        const timerEl = document.getElementById('timer');
-        const wpmEl = document.getElementById('wpm');
-        const accuracyEl = document.getElementById('accuracy');
-        const lastKeyDisplay = document.getElementById('last-key-display');
-        const resultsModal = document.getElementById('results-modal');
-        const finalTimeEl = document.getElementById('final-time');
-        const finalWpmEl = document.getElementById('final-wpm');
-        const closeModalBtn = document.getElementById('close-modal');
-        const progressBar = document.getElementById('progress-bar');
-
-        // Mapeo para normalizar acentos
-        const accentMap = {
-            'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
-            'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
-            'ü': 'u', 'Ü': 'U'
-        };
-
-        function normalizeChar(char) {
-            return accentMap[char] || char;
-        }
-
-        function initChallenge() {
-            const randomPick = debateTopics[Math.floor(Math.random() * debateTopics.length)];
-            targetText = randomPick.text;
-            currentTopicEl.innerText = randomPick.topic;
+        function renderProducts() {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = '';
             
-            currentIndex = 0;
-            mistakes = 0;
-            isStarted = false;
-            clearInterval(timerInterval);
-            
-            timerEl.innerText = "0.00s";
-            wpmEl.innerText = "0";
-            accuracyEl.innerText = "100%";
-            lastKeyDisplay.innerText = "-";
-            progressBar.style.width = "0%";
-            
-            renderInitialText();
-            hiddenInput.value = "";
-            hiddenInput.focus();
-        }
-
-        function renderInitialText() {
-            textDisplay.innerHTML = '';
-            targetText.split('').forEach((char, index) => {
-                const span = document.createElement('span');
-                span.innerText = char;
-                span.className = 'char-base';
-                if (index === 0) span.classList.add('cursor-active');
-                textDisplay.appendChild(span);
+            products.forEach(p => {
+                grid.innerHTML += `
+                    <div class="product-card">
+                        <div class="image-viewport">
+                            <img src="${p.img}" alt="${p.name}" class="product-image" 
+                                 onerror="this.src='https://via.placeholder.com/400x600?text=Perfume'">
+                        </div>
+                        <div class="p-8 text-center bg-black/20">
+                            <h3 class="text-2xl mb-1 tracking-wide font-light uppercase">${p.name}</h3>
+                            <p class="text-[10px] text-gray-500 uppercase tracking-[0.2em] mb-4">${p.desc}</p>
+                            <p class="text-[#c5a059] mb-6 text-xl font-semibold">$${p.price.toFixed(2)}</p>
+                            <button onclick="addToCart(${p.id})" class="text-[10px] font-bold uppercase tracking-[0.3em] border border-white/10 px-8 py-3 hover:bg-white hover:text-black transition duration-500 w-full">Seleccionar</button>
+                        </div>
+                    </div>
+                `;
             });
         }
 
-        function handleInput(charTyped) {
-            const spans = textDisplay.querySelectorAll('span');
-            const expectedChar = targetText[currentIndex];
-
-            // Comparamos el caracter normalizado para ignorar acentos
-            if (normalizeChar(charTyped) === normalizeChar(expectedChar)) {
-                // Correcto: se pone NEGRO (mantenemos el original del texto con su acento)
-                spans[currentIndex].className = 'char-correct';
-                currentIndex++;
-                
-                // Mover cursor
-                if (currentIndex < targetText.length) {
-                    spans[currentIndex].classList.add('cursor-active');
-                }
-                
-                // Actualizar progreso
-                const progress = (currentIndex / targetText.length) * 100;
-                progressBar.style.width = progress + "%";
-            } else {
-                // Error: se pone rojo momentáneamente
-                mistakes++;
-                spans[currentIndex].classList.add('char-incorrect');
-                setTimeout(() => {
-                    spans[currentIndex].classList.remove('char-incorrect');
-                }, 200);
-            }
+        function addToCart(id) {
+            const product = products.find(p => p.id === id);
+            cart.push(product);
+            updateCart();
             
-            updateStats();
+            // Notificación simple
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-8 right-8 bg-white text-black px-6 py-3 text-[10px] uppercase font-bold tracking-widest z-[100] border-l-4 border-[#c5a059]';
+            toast.innerText = `Añadido: ${product.name}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
         }
 
-        function updateStats() {
-            const total = currentIndex + mistakes;
-            const acc = total === 0 ? 100 : Math.round((currentIndex / total) * 100);
-            accuracyEl.innerText = acc + "%";
-        }
-
-        function startTimer() {
-            startTime = Date.now();
-            timerInterval = setInterval(() => {
-                const elapsed = (Date.now() - startTime) / 1000;
-                timerEl.innerText = elapsed.toFixed(2) + "s";
-                
-                const wpm = Math.round((currentIndex / 5) / (elapsed / 60));
-                wpmEl.innerText = wpm > 0 ? wpm : 0;
-            }, 50);
-        }
-
-        function finishChallenge() {
-            clearInterval(timerInterval);
-            finalTimeEl.innerText = timerEl.innerText.replace('s', '');
-            finalWpmEl.innerText = wpmEl.innerText;
-            resultsModal.classList.remove('hidden');
-            resultsModal.classList.add('flex');
-        }
-
-        hiddenInput.addEventListener('input', (e) => {
-            const char = e.data;
-            if (!char) return;
-
-            if (!isStarted) {
-                isStarted = true;
-                startTimer();
+        function updateCart() {
+            const count = document.getElementById('cart-count');
+            const itemsList = document.getElementById('cart-items');
+            const totalText = document.getElementById('cart-total');
+            
+            count.innerText = cart.length;
+            itemsList.innerHTML = '';
+            let total = 0;
+            
+            if (cart.length === 0) {
+                itemsList.innerHTML = '<p class="text-center text-gray-600 py-20 font-light uppercase tracking-widest">Bolsa vacía</p>';
+            } else {
+                cart.forEach((item, index) => {
+                    total += item.price;
+                    itemsList.innerHTML += `
+                        <div class="flex justify-between items-center border-b border-white/5 pb-4">
+                            <div class="flex items-center gap-4">
+                                <img src="${item.img}" class="w-12 h-16 object-contain bg-white/5 p-1">
+                                <div>
+                                    <p class="text-sm font-light uppercase">${item.name}</p>
+                                    <p class="text-xs gold-text">$${item.price.toFixed(2)}</p>
+                                </div>
+                            </div>
+                            <button onclick="removeFromCart(${index})" class="text-gray-500 hover:text-white text-xl">&times;</button>
+                        </div>
+                    `;
+                });
             }
+            totalText.innerText = `$${total.toFixed(2)}`;
+        }
 
-            lastKeyDisplay.innerText = char === " " ? "␣" : char;
-            handleInput(char);
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCart();
+        }
 
-            if (currentIndex === targetText.length) {
-                finishChallenge();
-            }
+        function toggleCart() {
+            const modal = document.getElementById('cart-modal');
+            modal.classList.toggle('hidden');
+            document.body.style.overflow = modal.classList.contains('hidden') ? 'auto' : 'hidden';
+        }
 
-            hiddenInput.value = ""; 
-        });
+        function checkout() {
+            if (cart.length === 0) return;
+            let total = 0;
+            let details = "";
+            cart.forEach(p => {
+                details += `- ${p.name} ($${p.price.toFixed(2)})\n`;
+                total += p.price;
+            });
+            const message = `Hola R7 AROMA! Quiero pedir:\n\n${details}\nTotal: $${total.toFixed(2)}`;
+            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+        }
 
-        // Tecla TAB para reiniciar rápido
-        window.addEventListener('keydown', (e) => {
-            if (e.key === "Tab") {
-                e.preventDefault();
-                initChallenge();
-            }
-        });
-
-        document.getElementById('main-card').addEventListener('click', () => hiddenInput.focus());
-        closeModalBtn.addEventListener('click', () => {
-            resultsModal.classList.add('hidden');
-            resultsModal.classList.remove('flex');
-            initChallenge();
-        });
-
-        window.onload = initChallenge;
+        renderProducts();
     </script>
 </body>
 </html>
